@@ -4,7 +4,8 @@ var argv = require('yargs')
   .usage(require('./logo')+'\n$ hydra-bot [cmd]')
   .demandCommand(1)
   .command(
-    'batch-upload [options] file', '',
+    'batch-upload [options] file', 
+    'Batch upload works from JSON file.  File should have one JSON entry per line.',
     {
       username: {
         alias: 'u',
@@ -37,7 +38,7 @@ var argv = require('yargs')
       'batch-size' : {
         alias: 'b',
         default: 10,
-        describe: 'Admin set to add works to',
+        describe: 'How many files to add in parallel',
         type : 'number'
       }
     }

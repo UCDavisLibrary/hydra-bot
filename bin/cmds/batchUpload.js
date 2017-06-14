@@ -15,6 +15,7 @@ var count = 0;
 
 async function addWorks(){
   await jsonStreamParser(config.file, config.batchSize, addEntries);
+  return errors;
 }
 
 async function addEntries(entries, next) {
