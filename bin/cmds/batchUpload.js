@@ -9,6 +9,7 @@ var config = require(appRoot+'config');
 const login = require(appRoot+'lib/login');
 const addWork = require(appRoot+'lib/addWork');
 const jsonStreamParser = require(appRoot+'lib/jsonStreamParser');
+const request = config.request;
 
 var errors = [];
 var count = 0;
@@ -25,7 +26,7 @@ async function addEntries(entries, next) {
   var fileInfo = path.parse(config.file);
   for( var i = 0; i < entries.length; i++ ) {
     entries[i].file = entries[i].file.map((file) => {
-      if( file[0] === '/' ) {
+      if( file[0] === '/' || file.match(/^http/i) ) {
         return file;
       }
       return path.resolve(fileInfo.dir, file);
@@ -132,40 +133,79 @@ function writeErrors(errors) {
 
 function verifyFilePaths(file) {
   var fileInfo = path.parse(file);
+  var pending = 0;
+  var closed = false;
+  let errors = [];
 
   return new Promise((resolve, reject) => {
-    let errors = [], entry, i;
-
-    rl = readline.createInterface({
+    let rl = readline.createInterface({
       input: fs.createReadStream(file)
     });
-
-    rl.on('line', (line) => {
-      entry = JSON.parse(line);
-      
-      if( !entry.file ) {
-        errors.push({
-          id : entry.identifier,
-          message : 'No File Provided'
-        });
+    rl.on('line', async(line) => {
+      if( !line ) {
+        if( pending === 0 && closed ) {
+          resolve(errors);
+        }
         return;
       }
 
-      entry.file.forEach((file) => {
-        if( file[0] != '/' ) file = path.resolve(fileInfo.dir, file);
-        if( !fs.existsSync(file) ) {
-          errors.push({
-            id : entry.identifier,
-            message : 'File Does Not Exist',
-            file : file
-          });
-        }
-      });
+      pending++;
+      await verifyFilePath(line, errors, fileInfo);
+      pending--;
+      if( pending === 0 && closed ) {
+        resolve(errors);
+      }
     });
-
-    rl.on('close', () => resolve(errors));
+    rl.on('close', () => {
+      if( pending === 0 ) resolve(errors);
+      closed = true;
+    });
   });
 }
 
+async function verifyFilePath(line, errors, fileInfo)  {
+  let entry = JSON.parse(line);
+  
+  if( !entry.file ) {
+    errors.push({
+      id : entry.identifier,
+      message : 'No File Provided'
+    });
+    return;
+  }
+
+  for( i = 0; i < entry.file.length; i++ ) {
+    let file = entry.file[i];
+
+    if( file.match(/^http/i) ) {
+      var resp;
+      try {
+        resp = await request.head(file);
+      } catch(e) {
+        resp = e;
+      }
+      
+      if( resp.status !== 200 ) {
+        errors.push({
+          id : entry.identifier,
+          message : 'URL Did Not Respond With 200',
+          httpStatus : resp.status,
+          url : file
+        });
+      }
+      continue;
+    }
+
+    if( file[0] != '/' ) file = path.resolve(fileInfo.dir, file);
+
+    if( !fs.existsSync(file) ) {
+      errors.push({
+        id : entry.identifier,
+        message : 'File Does Not Exist',
+        file : file
+      });
+    }
+  }
+}
 
 module.exports = run;
