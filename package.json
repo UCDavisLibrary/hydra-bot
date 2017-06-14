@@ -9,6 +9,9 @@
   "bin": {
     "hydra-bot": "bin/cli.js"
   },
+  "engines" : { 
+    "node" : ">=8.0" 
+  },
   "author": "Justin Merz <jrmerz@gmail.com>",
   "license": "ISC",
   "dependencies": {
