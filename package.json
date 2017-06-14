@@ -6,12 +6,17 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "bin": {
+    "hydra-bot": "bin/cli.js"
+  },
   "author": "Justin Merz <jrmerz@gmail.com>",
   "license": "ISC",
   "dependencies": {
     "clone": "^2.1.1",
     "merge": "^1.2.0",
     "phantom": "^4.0.3",
-    "superagent": "^3.5.2"
+    "read": "^1.0.7",
+    "superagent": "^3.5.2",
+    "yargs": "^8.0.2"
   }
 }

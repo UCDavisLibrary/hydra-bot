@@ -4,7 +4,7 @@ const config = require('./config');
 const addWork = require('./lib/addWork');
 
 var count = 0;
-var batchSize = 10;
+var batchSize = 5;
 
 async function addWorks(){
   var jsonStreamParser = require('./lib/jsonStreamParser');
@@ -36,8 +36,8 @@ async function addWorks(){
 
 async function addEntry(entry, files) {
   console.time('Total Work Time '+entry.identifier);
-  // entry.admin_set_id = 'ef288949-2bee-4f3e-855c-5ccb48fe7c74';
-  entry.admin_set_id = '6294e459-2909-49de-9039-0937492d00b8';
+  entry.admin_set_id = 'eeb29628-40e2-4f7e-ac3d-9ab891d699a8';
+  // entry.admin_set_id = '6294e459-2909-49de-9039-0937492d00b8';
   await addWork(entry, files);
 
   console.timeEnd('Total Work Time '+entry.identifier);
